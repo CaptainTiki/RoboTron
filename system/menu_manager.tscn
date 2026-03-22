@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://tj2qmbg5tqfm"]
+
+[sub_resource type="GDScript" id="GDScript_r86ym"]
+script/source = "extends Control
+class_name MenuManager
+
+static var instance
+
+var menus : Dictionary[Menu.Type, Menu] = {}
+
+func _ready() -> void:
+	MenuManager.instance = self
+"
+
+[node name="MenuManager" type="Control" unique_id=1190111004]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_r86ym")

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /d/Godot/REPOs/RoboTron -maxdepth 2 -type f \\\\\\(-name *.md -o -name project.godot -o -name Makefile -o -name *.sh -o -name package.json \\\\\\))",
+      "Bash(ls -la /d/Godot/REPOs/RoboTron/*.*)"
+    ]
+  }
+}

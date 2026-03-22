@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://world/vfx/death_explosion.gd" id="1"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_1"]
+size = Vector2(0.2, 0.2)
+
+[node name="DeathExplosion" type="CPUParticles3D"]
+script = ExtResource("1")
+amount = 80
+lifetime = 0.75
+one_shot = true
+explosiveness = 0.85
+randomness = 0.5
+emission_shape = 1
+emission_sphere_radius = 0.2
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 4.0
+initial_velocity_max = 11.0
+angular_velocity_min = -360.0
+angular_velocity_max = 360.0
+gravity = Vector3(0, -6.0, 0)
+color = Color(1.0, 0.7, 0.08, 1.0)
+mesh = SubResource("QuadMesh_1")

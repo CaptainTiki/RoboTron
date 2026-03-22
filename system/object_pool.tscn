@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cvvppitof5mpd"]
+
+[ext_resource type="Script" uid="uid://psgcqlp6twx8" path="res://system/object_pool.gd" id="1_5r0ly"]
+
+[node name="ObjectPool" type="Node3D" unique_id=104172906]
+script = ExtResource("1_5r0ly")

@@ -1,0 +1,313 @@
+[gd_scene load_steps=24 format=3]
+
+[ext_resource type="Script" uid="uid://dkfjxwqp3wgo6" path="res://world/enemies/heavy.gd" id="1"]
+[ext_resource type="Script" path="res://world/components/robot_part.gd" id="2"]
+[ext_resource type="Script" path="res://world/components/robot_body.gd" id="3"]
+
+[sub_resource type="CapsuleShape3D" id="col"]
+radius = 0.84
+height = 1.2
+
+[sub_resource type="StandardMaterial3D" id="mat_body"]
+shading_mode = 1
+albedo_color = Color(0.26, 0.22, 0.2, 1)
+
+[sub_resource type="StandardMaterial3D" id="mat_accent"]
+shading_mode = 1
+albedo_color = Color(0.95, 0.45, 0.05, 1)
+
+[sub_resource type="StandardMaterial3D" id="mat_weapon"]
+shading_mode = 1
+albedo_color = Color(0.1, 0.1, 0.12, 1)
+
+[sub_resource type="StandardMaterial3D" id="mat_rotor"]
+shading_mode = 1
+albedo_color = Color(0.55, 0.52, 0.5, 1)
+
+[sub_resource type="StandardMaterial3D" id="mat_armor"]
+shading_mode = 1
+albedo_color = Color(0.32, 0.28, 0.24, 1)
+
+[sub_resource type="BoxMesh" id="mesh_core"]
+size = Vector3(0.42, 0.18, 0.42)
+
+[sub_resource type="BoxMesh" id="mesh_arm_z"]
+size = Vector3(0.06, 0.06, 0.38)
+
+[sub_resource type="BoxMesh" id="mesh_arm_x"]
+size = Vector3(0.38, 0.06, 0.06)
+
+[sub_resource type="CylinderMesh" id="mesh_rotor"]
+top_radius = 0.17
+bottom_radius = 0.17
+height = 0.02
+
+[sub_resource type="BoxMesh" id="mesh_armor_plate"]
+size = Vector3(0.46, 0.06, 0.46)
+
+[sub_resource type="BoxMesh" id="mesh_weapon_arm"]
+size = Vector3(0.055, 0.16, 0.055)
+
+[sub_resource type="BoxMesh" id="mesh_weapon_barrel"]
+size = Vector3(0.055, 0.055, 0.24)
+
+[sub_resource type="BoxShape3D" id="body_col"]
+size = Vector3(0.42, 0.18, 0.42)
+
+[sub_resource type="BoxShape3D" id="arm_z_col"]
+size = Vector3(0.06, 0.06, 0.38)
+
+[sub_resource type="BoxShape3D" id="arm_x_col"]
+size = Vector3(0.38, 0.06, 0.06)
+
+[sub_resource type="CylinderShape3D" id="rotor_col"]
+radius = 0.17
+height = 0.02
+
+[sub_resource type="BoxShape3D" id="armor_col"]
+size = Vector3(0.46, 0.06, 0.46)
+
+[sub_resource type="BoxShape3D" id="weapon_arm_col"]
+size = Vector3(0.055, 0.16, 0.055)
+
+[sub_resource type="BoxShape3D" id="weapon_barrel_col"]
+size = Vector3(0.055, 0.055, 0.24)
+
+[node name="Heavy" type="CharacterBody3D"]
+collision_layer = 4
+collision_mask = 7
+script = ExtResource("1")
+hp = 150.0
+move_speed = 2.0
+money_value = 75
+attack_damage = 15.0
+attack_range = 15.0
+attack_rate = 2.5
+min_range = 5.0
+burst_count = 3
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+shape = SubResource("col")
+
+[node name="Body" type="Area3D" parent="."]
+scale = Vector3(2, 2, 2)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("3")
+part_hp = 80.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0)
+shape = SubResource("body_col")
+
+[node name="Core" type="MeshInstance3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0)
+mesh = SubResource("mesh_core")
+material_override = SubResource("mat_body")
+
+[node name="Eye" type="MeshInstance3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, -0.23)
+mesh = SubResource("mesh_rotor")
+material_override = SubResource("mat_accent")
+
+[node name="ArmorPlate" type="Area3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.68, 0)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 60.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmorPlate"]
+shape = SubResource("armor_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/ArmorPlate"]
+mesh = SubResource("mesh_armor_plate")
+material_override = SubResource("mat_armor")
+
+[node name="ArmFront" type="Area3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, -0.19)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 25.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmFront"]
+shape = SubResource("arm_z_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/ArmFront"]
+mesh = SubResource("mesh_arm_z")
+material_override = SubResource("mat_body")
+
+[node name="RotorFront" type="Area3D" parent="Body/ArmFront"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, -0.18)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 18.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmFront/RotorFront"]
+shape = SubResource("rotor_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/ArmFront/RotorFront"]
+mesh = SubResource("mesh_rotor")
+material_override = SubResource("mat_rotor")
+
+[node name="ArmBack" type="Area3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0.19)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 25.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmBack"]
+shape = SubResource("arm_z_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/ArmBack"]
+mesh = SubResource("mesh_arm_z")
+material_override = SubResource("mat_body")
+
+[node name="RotorBack" type="Area3D" parent="Body/ArmBack"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0.18)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 18.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmBack/RotorBack"]
+shape = SubResource("rotor_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/ArmBack/RotorBack"]
+mesh = SubResource("mesh_rotor")
+material_override = SubResource("mat_rotor")
+
+[node name="ArmLeft" type="Area3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.19, 0.62, 0)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 25.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmLeft"]
+shape = SubResource("arm_x_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/ArmLeft"]
+mesh = SubResource("mesh_arm_x")
+material_override = SubResource("mat_body")
+
+[node name="RotorLeft" type="Area3D" parent="Body/ArmLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.18, 0.03, 0)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 18.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmLeft/RotorLeft"]
+shape = SubResource("rotor_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/ArmLeft/RotorLeft"]
+mesh = SubResource("mesh_rotor")
+material_override = SubResource("mat_rotor")
+
+[node name="ArmRight" type="Area3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.19, 0.62, 0)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 25.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmRight"]
+shape = SubResource("arm_x_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/ArmRight"]
+mesh = SubResource("mesh_arm_x")
+material_override = SubResource("mat_body")
+
+[node name="RotorRight" type="Area3D" parent="Body/ArmRight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.18, 0.03, 0)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 18.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmRight/RotorRight"]
+shape = SubResource("rotor_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/ArmRight/RotorRight"]
+mesh = SubResource("mesh_rotor")
+material_override = SubResource("mat_rotor")
+
+[node name="WeaponMountL" type="Node3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.18, 0.62, -0.1)
+
+[node name="WeaponArm" type="Area3D" parent="Body/WeaponMountL"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47, 0)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("../..")
+part_hp = 20.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/WeaponMountL/WeaponArm"]
+shape = SubResource("weapon_arm_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/WeaponMountL/WeaponArm"]
+mesh = SubResource("mesh_weapon_arm")
+material_override = SubResource("mat_body")
+
+[node name="WeaponBarrel" type="Area3D" parent="Body/WeaponMountL/WeaponArm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.09, -0.08)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 15.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/WeaponMountL/WeaponArm/WeaponBarrel"]
+shape = SubResource("weapon_barrel_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/WeaponMountL/WeaponArm/WeaponBarrel"]
+mesh = SubResource("mesh_weapon_barrel")
+material_override = SubResource("mat_weapon")
+
+[node name="WeaponMountR" type="Node3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.18, 0.62, -0.1)
+
+[node name="WeaponArm" type="Area3D" parent="Body/WeaponMountR"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47, 0)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("../..")
+part_hp = 20.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/WeaponMountR/WeaponArm"]
+shape = SubResource("weapon_arm_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/WeaponMountR/WeaponArm"]
+mesh = SubResource("mesh_weapon_arm")
+material_override = SubResource("mat_body")
+
+[node name="WeaponBarrel" type="Area3D" parent="Body/WeaponMountR/WeaponArm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.09, -0.08)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 15.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/WeaponMountR/WeaponArm/WeaponBarrel"]
+shape = SubResource("weapon_barrel_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/WeaponMountR/WeaponArm/WeaponBarrel"]
+mesh = SubResource("mesh_weapon_barrel")
+material_override = SubResource("mat_weapon")

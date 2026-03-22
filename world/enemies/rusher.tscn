@@ -1,0 +1,171 @@
+[gd_scene load_steps=18 format=3]
+
+[ext_resource type="Script" uid="uid://c32y1n2woob4l" path="res://world/enemies/rusher.gd" id="1"]
+[ext_resource type="Script" path="res://world/components/robot_part.gd" id="2"]
+[ext_resource type="Script" path="res://world/components/robot_body.gd" id="3"]
+
+[sub_resource type="CapsuleShape3D" id="col"]
+radius = 0.4
+height = 1.44
+
+[sub_resource type="StandardMaterial3D" id="mat_body"]
+shading_mode = 1
+albedo_color = Color(0.2, 0.24, 0.2, 1)
+
+[sub_resource type="StandardMaterial3D" id="mat_accent"]
+shading_mode = 1
+albedo_color = Color(0.1, 0.9, 0.15, 1)
+
+[sub_resource type="StandardMaterial3D" id="mat_weapon"]
+shading_mode = 1
+albedo_color = Color(0.1, 0.1, 0.12, 1)
+
+[sub_resource type="BoxMesh" id="mesh_chassis"]
+size = Vector3(0.3, 0.22, 0.26)
+
+[sub_resource type="CylinderMesh" id="mesh_wheel"]
+top_radius = 0.22
+bottom_radius = 0.22
+height = 0.1
+
+[sub_resource type="BoxMesh" id="mesh_arm"]
+size = Vector3(0.22, 0.045, 0.045)
+
+[sub_resource type="BoxMesh" id="mesh_weapon"]
+size = Vector3(0.045, 0.045, 0.22)
+
+[sub_resource type="BoxMesh" id="mesh_sensor"]
+size = Vector3(0.1, 0.045, 0.05)
+
+[sub_resource type="SphereMesh" id="mesh_eye"]
+radius = 0.038
+height = 0.076
+
+[sub_resource type="BoxShape3D" id="body_col"]
+size = Vector3(0.3, 0.22, 0.26)
+
+[sub_resource type="CylinderShape3D" id="wheel_col"]
+radius = 0.22
+height = 0.1
+
+[sub_resource type="BoxShape3D" id="arm_col"]
+size = Vector3(0.22, 0.045, 0.045)
+
+[sub_resource type="BoxShape3D" id="weapon_col"]
+size = Vector3(0.045, 0.045, 0.22)
+
+[node name="Rusher" type="CharacterBody3D"]
+collision_layer = 4
+collision_mask = 7
+script = ExtResource("1")
+hp = 30.0
+move_speed = 7.5
+money_value = 20
+attack_damage = 20.0
+attack_range = 1.6
+attack_rate = 0.8
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72, 0)
+shape = SubResource("col")
+
+[node name="Body" type="Area3D" parent="."]
+scale = Vector3(2, 2, 2)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("3")
+part_hp = 35.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.44, 0)
+shape = SubResource("body_col")
+
+[node name="Chassis" type="MeshInstance3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.44, 0)
+mesh = SubResource("mesh_chassis")
+material_override = SubResource("mat_body")
+
+[node name="SensorHead" type="MeshInstance3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.57, -0.11)
+mesh = SubResource("mesh_sensor")
+material_override = SubResource("mat_body")
+
+[node name="Eye" type="MeshInstance3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.57, -0.15)
+mesh = SubResource("mesh_eye")
+material_override = SubResource("mat_accent")
+
+[node name="Wheel" type="Area3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.22, 0)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 20.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/Wheel"]
+shape = SubResource("wheel_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/Wheel"]
+mesh = SubResource("mesh_wheel")
+material_override = SubResource("mat_body")
+
+[node name="ArmL" type="Area3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.26, 0.47, 0)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 15.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmL"]
+shape = SubResource("arm_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/ArmL"]
+mesh = SubResource("mesh_arm")
+material_override = SubResource("mat_body")
+
+[node name="WeaponL" type="Area3D" parent="Body/ArmL"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.12, 0, -0.04)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 10.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmL/WeaponL"]
+shape = SubResource("weapon_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/ArmL/WeaponL"]
+mesh = SubResource("mesh_weapon")
+material_override = SubResource("mat_weapon")
+
+[node name="ArmR" type="Area3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26, 0.47, 0)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 15.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmR"]
+shape = SubResource("arm_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/ArmR"]
+mesh = SubResource("mesh_arm")
+material_override = SubResource("mat_body")
+
+[node name="WeaponR" type="Area3D" parent="Body/ArmR"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 0, -0.04)
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("2")
+parent_part = NodePath("..")
+part_hp = 10.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmR/WeaponR"]
+shape = SubResource("weapon_col")
+
+[node name="Mesh" type="MeshInstance3D" parent="Body/ArmR/WeaponR"]
+mesh = SubResource("mesh_weapon")
+material_override = SubResource("mat_weapon")
