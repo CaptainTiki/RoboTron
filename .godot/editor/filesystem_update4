@@ -1,0 +1,9 @@
+res://scenes/enemies/grunt.tscn
+res://scripts/enemies/enemy_base.gd
+res://scripts/enemies/grunt.gd
+res://scripts/enemies/heavy.gd
+res://scripts/enemies/rusher.gd
+res://scripts/enemies/shooter.gd
+res://scripts/wave_manager.gd
+res://scenes/arena.tscn
+res://scripts/arena.gd
