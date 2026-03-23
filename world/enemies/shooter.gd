@@ -35,7 +35,7 @@ func _do_attack() -> void:
 	var target := player_node.global_position + Vector3(0, 1.0, 0)
 
 	var proj: Projectile = PROJECTILE_SCENE.instantiate()
-	proj.damage = attack_damage
+	proj.damage = _effective_attack_damage()
 	proj.color = Color(0.2, 0.5, 1.0)
 	proj.collision_mask = 3  # world(1) + player(2)
 	proj.speed = 22.0

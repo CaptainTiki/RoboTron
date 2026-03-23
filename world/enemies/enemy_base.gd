@@ -27,6 +27,15 @@ const STAGGER_HP_THRESHOLD := 0.25  # 25% HP triggers stagger
 const TWITCH_DURATION := 0.07
 const TWITCH_AMOUNT := 0.07
 
+# Persistent degradation from part loss — not reset by stagger ending.
+var _speed_multiplier: float = 1.0
+var _attack_multiplier: float = 1.0
+
+# Periodic sputter sparks when body HP < 50%.
+const SPUTTER_INTERVAL_MIN: float = 1.2
+const SPUTTER_INTERVAL_MAX: float = 3.0
+var _sputter_timer: float = 0.0
+
 signal died(money_earned: int)
 
 const GRAVITY: float = 9.8
@@ -38,6 +47,7 @@ func _ready() -> void:
 	max_hp          = hp
 	add_to_group("enemies")
 	_robot_body = get_node_or_null("Body") as RobotBody
+	_sputter_timer = randf_range(SPUTTER_INTERVAL_MIN, SPUTTER_INTERVAL_MAX)
 
 
 func _physics_process(delta: float) -> void:
@@ -61,6 +71,8 @@ func _physics_process(delta: float) -> void:
 		if _twitch_timer <= 0.0 and _robot_body:
 			_robot_body.position = Vector3.ZERO
 
+	_tick_sputter(delta)
+
 
 # Override in subclasses.
 func _behavior(delta: float) -> void:
@@ -70,7 +82,7 @@ func _behavior(delta: float) -> void:
 func _seek_and_melee(delta: float) -> void:
 	var to_player: Vector3 = player_node.global_position - global_position
 	var dist: float        = to_player.length()
-	var effective_speed    = move_speed * (STAGGER_SPEED_MULT if is_staggered else 1.0)
+	var effective_speed    = move_speed * _speed_multiplier * (STAGGER_SPEED_MULT if is_staggered else 1.0)
 
 	if dist < attack_range:
 		velocity.x = 0.0
@@ -92,6 +104,8 @@ func _face_player() -> void:
 
 
 func _try_attack(delta: float) -> void:
+	if _attack_multiplier <= 0.0:
+		return
 	attack_timer -= delta
 	if attack_timer <= 0.0:
 		attack_timer = attack_rate
@@ -100,7 +114,11 @@ func _try_attack(delta: float) -> void:
 
 func _do_attack() -> void:
 	if player_node and player_node.has_method("take_damage"):
-		player_node.take_damage(attack_damage, global_position)
+		player_node.take_damage(_effective_attack_damage(), global_position)
+
+
+func _effective_attack_damage() -> float:
+	return attack_damage * _attack_multiplier
 
 
 func take_damage(amount: float, hit_position: Vector3 = Vector3.ZERO) -> void:
@@ -123,6 +141,24 @@ func take_damage(amount: float, hit_position: Vector3 = Vector3.ZERO) -> void:
 func on_piece_lost(count: int) -> void:
 	if not is_staggered:
 		_enter_stagger()
+
+
+## Called by RobotBody when a locomotion part detaches.
+## Permanently reduces move speed based on how many have been lost.
+func on_locomotion_part_lost(count: int) -> void:
+	match count:
+		1: _speed_multiplier = 0.55
+		2: _speed_multiplier = 0.28
+		_: _speed_multiplier = 0.12
+
+
+## Called by RobotBody when a weapon part detaches.
+## Reduces or disables attack capability based on losses.
+func on_weapon_part_lost(count: int) -> void:
+	match count:
+		1: _attack_multiplier = 0.55
+		2: _attack_multiplier = 0.2
+		_: _attack_multiplier = 0.0
 
 
 # Instant execution triggered by the player's glory kill.
@@ -161,6 +197,21 @@ func _die(is_glory: bool = false) -> void:
 	SignalBus.enemy_died_at.emit(global_position)
 	died.emit(money_value)
 	queue_free()
+
+
+# ---- Sputter sparks — periodic burst when heavily damaged ------------------
+
+func _tick_sputter(delta: float) -> void:
+	if not _robot_body:
+		return
+	if _robot_body._hp / _robot_body.part_hp > 0.5:
+		return
+	_sputter_timer -= delta
+	if _sputter_timer <= 0.0:
+		_sputter_timer = randf_range(SPUTTER_INTERVAL_MIN, SPUTTER_INTERVAL_MAX)
+		SignalBus.piece_detached.emit(global_position + Vector3(
+			randf_range(-0.2, 0.2), 0.8, randf_range(-0.2, 0.2)
+		))
 
 
 # ---- Stagger visual — eye/accent mesh flash ---------------------------------

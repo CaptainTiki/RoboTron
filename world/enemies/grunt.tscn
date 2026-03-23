@@ -49,10 +49,10 @@ radius = 0.28
 height = 0.12
 
 [sub_resource type="BoxShape3D" id="arm_col"]
-size = Vector3(0.26, 0.055, 0.055)
+size = Vector3(0.26, 0.12, 0.12)
 
 [sub_resource type="BoxShape3D" id="weapon_col"]
-size = Vector3(0.055, 0.055, 0.2)
+size = Vector3(0.11, 0.11, 0.2)
 
 [node name="Grunt" type="CharacterBody3D"]
 collision_layer = 4
@@ -68,7 +68,7 @@ scale = Vector3(2, 2, 2)
 collision_layer = 8
 collision_mask = 0
 script = ExtResource("3")
-part_hp = 55.0
+part_hp = 110.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Body"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
@@ -96,6 +96,7 @@ collision_mask = 0
 script = ExtResource("2")
 parent_part = NodePath("..")
 part_hp = 25.0
+part_role = 1
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Body/Wheel"]
 shape = SubResource("wheel_col")
@@ -111,6 +112,7 @@ collision_mask = 0
 script = ExtResource("2")
 parent_part = NodePath("..")
 part_hp = 20.0
+part_role = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmL"]
 shape = SubResource("arm_col")
@@ -126,6 +128,7 @@ collision_mask = 0
 script = ExtResource("2")
 parent_part = NodePath("..")
 part_hp = 12.0
+part_role = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmL/WeaponL"]
 shape = SubResource("weapon_col")
@@ -141,6 +144,7 @@ collision_mask = 0
 script = ExtResource("2")
 parent_part = NodePath("..")
 part_hp = 20.0
+part_role = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmR"]
 shape = SubResource("arm_col")
@@ -156,6 +160,7 @@ collision_mask = 0
 script = ExtResource("2")
 parent_part = NodePath("..")
 part_hp = 12.0
+part_role = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Body/ArmR/WeaponR"]
 shape = SubResource("weapon_col")

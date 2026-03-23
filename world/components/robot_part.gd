@@ -3,6 +3,9 @@ class_name RobotPart
 
 const WOUND_SPARK_SCENE = preload("res://world/vfx/wound_spark.tscn")
 
+## Role this part plays — used to degrade enemy behavior when it detaches.
+enum PartRole { NONE, LOCOMOTION, WEAPON, ARMOR }
+
 ## Exported reference to the logical parent in the damage propagation chain.
 ## Set this in the editor. Can point to any RobotPart — including a RobotBody,
 ## which terminates the chain. Leave null for orphaned parts.
@@ -11,11 +14,14 @@ const WOUND_SPARK_SCENE = preload("res://world/vfx/wound_spark.tscn")
 ## HP this part can absorb before detaching.
 @export var part_hp: float = 10.0
 
-## Fraction of incoming damage forwarded up to parent_part (0.5 = 50%).
-@export var propagation_ratio: float = 0.5
+## Fraction of incoming damage forwarded up to parent_part (0.2 = 20%).
+@export var propagation_ratio: float = 0.2
 
 ## Linear speed of the debris impulse when this part blows off.
 @export var detach_impulse: float = 5.0
+
+## Behavior role — set per-part in the scene file.
+@export var part_role: PartRole = PartRole.NONE
 
 var _hp: float
 var _detached: bool = false
@@ -25,11 +31,23 @@ var _detached: bool = false
 static var _debris_queue: Array = []
 const MAX_DEBRIS: int = 35
 
+var _hit_flash_timer: float = 0.0
+var _hit_flash_mesh: MeshInstance3D = null
+const HIT_FLASH_DURATION: float = 0.08
+
 
 func _ready() -> void:
 	_hp = part_hp
 	collision_layer = 8  # layer 8 = robot parts, detected by player projectiles
 	collision_mask  = 0  # parts don't detect anything themselves
+	_hit_flash_mesh = _get_first_mesh()
+
+
+func _process(delta: float) -> void:
+	if _hit_flash_timer > 0.0:
+		_hit_flash_timer -= delta
+		if _hit_flash_timer <= 0.0 and _hit_flash_mesh:
+			_hit_flash_mesh.material_override = null
 
 
 ## Universal damage entry point — called by projectile via area_entered.
@@ -39,6 +57,7 @@ func take_damage(amount: float, hit_position: Vector3 = Vector3.ZERO) -> void:
 	if _detached:
 		return
 	_hp -= amount
+	_trigger_hit_flash()
 	if parent_part != null and not parent_part._detached:
 		parent_part.take_damage(amount * propagation_ratio, hit_position)
 	if _hp <= 0.0:
@@ -46,6 +65,19 @@ func take_damage(amount: float, hit_position: Vector3 = Vector3.ZERO) -> void:
 
 
 # ---- Private ----------------------------------------------------------------
+
+func _trigger_hit_flash() -> void:
+	if not _hit_flash_mesh:
+		return
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode   = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color   = Color(1.0, 0.55, 0.1)
+	mat.emission_enabled = true
+	mat.emission       = Color(1.0, 0.55, 0.1)
+	mat.emission_energy_multiplier = 2.0
+	_hit_flash_mesh.material_override = mat
+	_hit_flash_timer = HIT_FLASH_DURATION
+
 
 func _detach(hit_position: Vector3) -> void:
 	_detached = true
@@ -94,11 +126,14 @@ func _detach(hit_position: Vector3) -> void:
 	# world positions. The 2x scale from Body stays baked into our local transform.
 	reparent(rb, true)
 
-	# Persistent wound spark — lives on the surviving parent part at the
-	# separation point. Freed automatically when parent_part detaches or dies.
+	# Persistent wound spark — parented to the enemy root (CharacterBody3D,
+	# scale=1) so particle velocities/sizes aren't distorted by Body's 2× scale.
+	# Follows the robot as it moves; freed automatically when the enemy dies.
 	if parent_part != null and not parent_part._detached:
 		var spark := WOUND_SPARK_SCENE.instantiate() as CPUParticles3D
-		parent_part.add_child(spark)
+		var enemy_root := _find_enemy_root()
+		var spark_parent: Node = enemy_root if enemy_root else parent_part
+		spark_parent.add_child(spark)
 		spark.global_position = sep_pos
 
 	# Apply outward impulse + random tumble.
@@ -146,9 +181,20 @@ func _notify_body_root() -> void:
 	var p: RobotPart = parent_part
 	while p != null:
 		if p is RobotBody:
-			(p as RobotBody).on_part_detached()
+			(p as RobotBody).on_part_detached(part_role)
 			return
 		p = p.parent_part
+
+
+func _find_enemy_root() -> Node3D:
+	## Returns the CharacterBody3D this part belongs to (scale=1, safe parent
+	## for VFX that must not inherit Body's 2× scale).
+	var p := get_parent()
+	while p != null:
+		if p is CharacterBody3D:
+			return p as Node3D
+		p = p.get_parent()
+	return null
 
 
 func _find_arena() -> Node3D:
