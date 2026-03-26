@@ -16,7 +16,8 @@ const PLAYER_SCENE = preload("res://world/player/player.tscn")
 
 func _create_player() -> void:
 	var player := PLAYER_SCENE.instantiate()
-	player.position = Vector3(0.0, 1.0, 0.0)
+	# Spawn at the "safe" end (positive X). Danger end is negative X.
+	player.position = Vector3(18.0, 1.0, 0.0)
 	add_child(player)
 	player_node = player
 	SignalBus.player_died.connect(_on_player_died)

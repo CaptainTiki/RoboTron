@@ -4,6 +4,12 @@ class_name EnemyHeavy
 @export var min_range: float = 5.0
 @export var burst_count: int = 3
 
+func _ready() -> void:
+	super._ready()
+	flies         = true   # drone: has rotors, should hover
+	fly_height    = 4.5    # heavier, floats a bit higher
+	attack_windup = 0.25   # brief pause before burst begins
+
 var burst_remaining: int = 0
 var burst_timer: float = 0.0
 const BURST_INTERVAL: float = 0.18

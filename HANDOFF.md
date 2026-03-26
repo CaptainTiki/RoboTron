@@ -1,55 +1,73 @@
 # HANDOFF.md — Session State for Continuing Claude
 
 > Read this at the start of each new session. Update it before ending a session.
-> Last updated: 2026-03-22
+> Last updated: 2026-03-25
 
 ---
 
 ## What Was Just Built
 
-### Destruction System (complete)
-- `world/components/robot_part.gd` — `RobotPart extends Area3D`. Each part IS its own hitbox (collision layer 8). Exported `parent_part: RobotPart` defines the damage chain. `take_damage()` damages self, propagates `amount * propagation_ratio` (50%) upward, then calls `_detach()` when HP hits zero.
-- `world/components/robot_body.gd` — `RobotBody extends RobotPart`. Always the chain root (`parent_part = null`). Overrides `take_damage()` with no propagation. Calls `enemy._enter_stagger()` at HP/part-loss thresholds. Calls `enemy._die()` at zero HP.
-- All 4 enemy scenes rewritten: `grunt.tscn`, `rusher.tscn`, `shooter.tscn`, `heavy.tscn` — each has a `Body` (RobotBody) with child `RobotPart` nodes for arms, wheels, rotors, weapons.
-- Parts detach as `RigidBody3D` debris with physics impulse. Debris persists the full wave (no timer), FIFO capped at 35 pieces globally via `static var _debris_queue` in `robot_part.gd`.
+### AI State Machine (enemy_base.gd)
+- Three states: `SEARCH`, `ALERT`, `LOST`
+- **SEARCH** — enemy wanders slowly (35% speed), picking random nearby targets every 2–4s. Transitions to ALERT when player enters `DETECTION_RANGE` (18m).
+- **ALERT** — full `_behavior(delta)` (subclass movement + attacks). Transitions to LOST if player exceeds `ALERT_RANGE` (28m).
+- **LOST** — walks to `last_known_position`, rechecks for player. Returns to SEARCH after `LOST_TIMEOUT` (6s) if player not re-detected.
+- Enemies also instantly go ALERT when hit (via `take_damage`).
+- Subclasses (`grunt.gd`, `rusher.gd`, `shooter.gd`, `heavy.gd`) required no changes to `_behavior()` — the state machine wraps around them cleanly.
 
-### Enemy Feel (complete)
-- **Hit twitch** — `enemy_base._apply_hit_twitch()` jerks the Body node a small random offset, springs back after 0.07s.
-- **Part-loss stun** — `enemy_base.stun(0.5)` called by `robot_body.on_part_detached()`. Enemy freezes for 0.5s.
-- **Stagger** — triggers at 25% body HP OR 3 parts lost. Eye mesh flashes red, move speed drops to 20%.
-- **Glory kill** — press E within 2.5m of a staggered enemy. Instant kill, 2× money, +30 HP, camera kick.
+### Attack Telegraph (enemy_base.gd)
+- `attack_windup: float` export on each enemy — pause before `_do_attack()` fires.
+- During windup: eye turns **orange** (`Color(1.0, 0.55, 0.0)`) as a visual warning.
+- After windup fires: eye resets to transparent (or stays with stagger red if staggered).
+- Windup durations: Grunt 0.5s, Rusher 0.3s, Heavy 0.25s, Shooter 0.2s.
+- Stagger flash takes priority over windup color (stagger = already dying).
 
-### VFX System (complete, needs visual QA)
-- `Pool` autoload (`system/pool.gd`) manages 4 object pools: `spark_burst`, `ground_sparks`, `death_explosion`, `impact_spark`.
-- All VFX parented to Pool itself (not `current_scene`) — avoids Node-type parent issues.
-- `_play_at()` casts to `Node3D` and uses `.call("play")` for safe dynamic dispatch.
-- All QuadMesh particles now **billboard** to camera via `BaseMaterial3D.BILLBOARD_ENABLED` set in each script's `_ready()`.
+### Flying Enemies (enemy_base.gd + shooter.gd + heavy.gd)
+- `flies: bool` and `fly_height: float` exports on Enemy base.
+- When `flies = true`: gravity replaced by spring hover toward `fly_height` world Y (`FLY_HOVER_SPEED = 5.0`).
+- **Shooter** (`flies=true`, `fly_height=3.5`) and **Heavy** (`flies=true`, `fly_height=4.5`) are now drones.
+- Grunt and Rusher remain ground units (wheels, not rotors).
 
-### VFX Scenes (world/vfx/)
-| Scene | Trigger | Color | Notes |
-|-------|---------|-------|-------|
-| `spark_burst.tscn` | `piece_detached` signal | bright yellow (1.0, 0.95, 0.3) | one-shot, 32 particles |
-| `impact_spark.tscn` | `bullet_impact` signal | electric blue (0.45, 0.85, 1.0) | one-shot, 16 particles, small |
-| `death_explosion.tscn` | `enemy_died_at` signal | orange-yellow (1.0, 0.7, 0.08) | one-shot, 80 particles |
-| `ground_sparks.tscn` | `piece_grounded` signal | sparks orange + dark transparent smoke | looping, 5.5s duration |
-| `wound_spark.tscn` | direct child in `_detach()` | electric blue (0.35, 0.75, 1.0) | looping, parented to surviving part |
+### Wall Jump (player.gd)
+- Jump input checks `is_on_wall_only()` when not on floor.
+- Kicks player away from wall at 85% vertical + 90% horizontal speed.
+- Camera kick applied for feel (`kick(-0.35, 0.0, -wall_normal.x * 0.4)`).
+
+### Spawn Zones (arena.gd + wave_manager.gd)
+- **Player** spawns at `Vector3(0, 1, 18)` — safe end (positive Z).
+- **Enemy spawn points** all cluster at negative Z (danger end), max at Z=−22, flanking sides at Z=−6 to −20.
+- No enemies spawn behind or beside the player at wave start.
+
+### Dead Code Removed (enemy_base.gd)
+- `on_piece_lost(count)` removed (was leftover from old DestructionHandler system).
 
 ---
 
 ## Immediately Pending (start here next session)
 
-1. **Test wound_spark** — `robot_part._detach()` spawns it as a child of `parent_part` at the separation point. Needs live confirmation it appears and is positioned correctly.
-2. **Visual QA pass** — open each `.tscn` in Godot editor, hit the "play" button in the particle preview to confirm billboard, color, and size look right before running the game.
-3. **Remove dead code** — `on_piece_lost(count)` in `enemy_base.gd` around line 122. Leftover from old `DestructionHandler` system. Harmless but should go.
+1. **Place RoboSpawner instances in the arena** — open `arena.tscn` in the Godot editor, drag in `world/components/robo_spawner.tscn`. Place spawners along the negative-Z wall (danger end). Orient them so their local +Z faces into the arena (the SpawnMarker at Z=1 should point toward the player area). No code needed — just placement.
+2. **Test spawner sequence** — play the game, confirm: light flashes → light on → door opens → robot slides out → door closes → light off. Tune `FLASH_COUNT`, `SLIDE_DISTANCE`, `SLIDE_DURATION` in `robo_spawner.gd` if timing feels off.
+3. **Test flying enemies** — confirm Shooter and Heavy hover at correct height and don't clip through floor. Adjust `fly_height` via Inspector override if needed.
+4. **Test AI states** — confirm enemies wander, detect, pursue, and go LOST properly. Tune `DETECTION_RANGE` / `ALERT_RANGE` in `enemy_base.gd` if feel is off.
+5. **Test attack telegraph** — orange eye flash should be clearly visible before melee connects. Tune `attack_windup` per enemy if too long/short.
+6. **Test wall jump** — needs a vertical wall surface in the arena. Currently arena pillars should work.
+7. **VFX QA** (carried over) — wound_spark positioning, all particle previews in editor.
 
 ---
 
-## Bigger Things On Deck
+## Bigger Things On Deck (from playtester session 2026-03-25)
 
-- **Audio** — no sound at all in the game yet. This is the single biggest feel gap. Hit sounds, weapon fire, enemy death, reload.
-- **Wave feel** — does progression curve feel right? Enemy counts scale at `1.0 + (wave-1) * 0.4`. Worth a tuning pass.
-- **Player feedback UI** — low HP warning, on-screen prompt when near a staggered enemy ("Press E").
-- **Arena** — only one map. Could use cover objects and obstacles for more interesting combat.
+### Needs Editor Work (Godot editor, not pure GDScript)
+- **Spawner placement** — `robo_spawner.tscn` is built and scripted. Just needs instances placed in `arena.tscn` along the danger-end wall. Orient local +Z toward the player area.
+- **Arena redesign** — current box+pillars needs: cover objects, elevated platforms, asymmetric layout for the safe-vs-danger zone to feel meaningful.
+- **Hazards** — wall turrets (StaticBody3D with a simple raycast attack timer), lava pits (Area3D with `body_entered` → damage), spikes/saws (Area3D, periodic damage or instant kill).
+- **Wall run** — needs long vertical walls in the arena for the player to run along. After arena redesign, add to `player.gd`: detect wall contact + horizontal momentum, suppress gravity briefly while holding movement key toward wall.
+
+### Needs Code + Design
+- **Parkour powerups** — reward chained wall jumps or aerial movement with a pickup. Design the pickup type first (speed? temp invincibility? ammo?).
+- **Audio** — still zero sound. Biggest feel gap remaining.
+- **"Press E" HUD prompt** — show on-screen when near a staggered enemy.
+- **Low HP warning** — red vignette or screen flash.
 
 ---
 
@@ -58,8 +76,22 @@
 ```
 collision layers:  1=world  2=player  4=enemies  8=robot_parts  16=debris
 projectile mask:   13  (world + enemies + robot_parts)
+enemy AI states:   SEARCH (wander) → ALERT (engage) → LOST (search last pos)
+fly hover:         velocity.y = (fly_height - global_position.y) * FLY_HOVER_SPEED
+player spawn:      Vector3(18, 1, 0)  — safe end (positive X)
+enemy spawns:      RoboSpawner instances (group "spawners") → fallback negative X cluster
+spawner signals:   enemy_deployed(enemy) — right after add_child, before slide
+                   spawn_finished       — after door closed + light off (_busy = false)
+spawner sequence:  flash light (5×) → light on → open door → add enemy → enemy_deployed
+                   → slide robot out (local -Z = into arena) → release AI → close door
+                   → light off → spawn_finished
+spawner orient:    SpawnMarker at local +Z (behind wall). Door faces local -Z into arena.
+                   Slide direction is -global_transform.basis.z.
+wave batch system: All enemies queued upfront + shuffled. _launch_next_batch() dispatches
+                   one enemy per available spawner simultaneously. Waits for ALL spawners
+                   in the batch to emit spawn_finished before launching next batch (0.8s gap).
+                   Guarantees max 1 enemy per spawner slot. No overflow, no falling enemies.
 Pool VFX parent:   /root/Pool  (Pool autoload, always alive)
-current_scene:     Main (plain Node) — NOT used for VFX parenting
 arena cleanup:     arena.queue_free() at wave end frees all debris automatically
 ```
 

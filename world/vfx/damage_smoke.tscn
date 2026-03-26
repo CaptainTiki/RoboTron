@@ -1,23 +1,30 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://yln4a2ugq7d7"]
 
-[ext_resource type="Script" path="res://world/vfx/wound_spark.gd" id="1"]
+[ext_resource type="Script" uid="uid://dxkb6coli6ghr" path="res://world/vfx/wound_spark.gd" id="1"]
+[ext_resource type="Material" uid="uid://b15ukca15qc6p" path="res://assets/smoke_particles_material.tres" id="1_pwlbl"]
 
 [sub_resource type="QuadMesh" id="QuadMesh_1"]
+material = ExtResource("1_pwlbl")
 size = Vector2(0.22, 0.22)
 
-[node name="DamageSmoke" type="CPUParticles3D"]
-script = ExtResource("1")
-amount = 10
+[sub_resource type="Curve" id="Curve_pwlbl"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.26595744, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[node name="DamageSmoke" type="CPUParticles3D" unique_id=1507635471]
+amount = 12
 lifetime = 2.0
-one_shot = false
-explosiveness = 0.0
 randomness = 1.0
+mesh = SubResource("QuadMesh_1")
 emission_shape = 1
-emission_sphere_radius = 0.12
+emission_sphere_radius = 0.06
 direction = Vector3(0, 1, 0)
 spread = 30.0
+gravity = Vector3(0, -0.08, 0)
 initial_velocity_min = 0.15
 initial_velocity_max = 0.6
-gravity = Vector3(0, -0.08, 0)
+scale_amount_min = 0.1
+scale_amount_max = 1.5
+scale_amount_curve = SubResource("Curve_pwlbl")
 color = Color(0.1, 0.1, 0.1, 0.55)
-mesh = SubResource("QuadMesh_1")
+script = ExtResource("1")

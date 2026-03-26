@@ -83,15 +83,7 @@ func _trigger_hit_flash() -> void:
 	_hit_flash_timer = HIT_FLASH_DURATION
 
 
-## Forcibly eject this part regardless of HP.
-## Used by enemy death so every remaining piece becomes physics debris.
-func force_detach() -> void:
-	if _detached:
-		return
-	_detach(Vector3.ZERO, false)
-
-
-func _detach(hit_position: Vector3, with_wound_fx: bool = true) -> void:
+func _detach(hit_position: Vector3) -> void:
 	_detached = true
 
 	# Capture world position now — reparent() will change our tree later.
@@ -139,35 +131,23 @@ func _detach(hit_position: Vector3, with_wound_fx: bool = true) -> void:
 	# world positions.
 	reparent(rb, true)
 
-	# Persistent wound effects — only when the part is shot off, not on death
-	# (the enemy is being freed so long-lived particles would vanish instantly).
-	var wound_parent: Node3D = null
-	if with_wound_fx:
-		wound_parent = enemy_root if enemy_root else (parent_part if parent_part is Node3D else null)
-	if wound_parent:
-		var wound_anchor := Node3D.new()
-		wound_anchor.name = "WoundAnchor"
-		wound_parent.add_child(wound_anchor)
-
-		var wound_world := sep_pos
-		if parent_part != null and not parent_part._detached:
-			var outward := sep_pos - parent_part.global_position
-			if outward.length_squared() > 0.0001:
-				wound_world += outward.normalized() * 0.12
+	# Persistent wound effects — anchor them to the remaining parent part so
+	# the spark origin stays glued to the stump instead of floating in world space.
+	if parent_part != null and not parent_part._detached:
+		var wound_parent: Node3D = parent_part if parent_part is Node3D else enemy_root
+		if wound_parent:
+			var wound_anchor := Node3D.new()
+			wound_anchor.name = "WoundAnchor"
+			wound_parent.add_child(wound_anchor)
+			var to_parent := parent_part.global_position - sep_pos
+			if to_parent.length_squared() > 0.0001:
+				wound_anchor.global_position = sep_pos + to_parent.normalized() * 0.08
 			else:
-				wound_world.y += 0.08
-		else:
-			wound_world.y += 0.08
-
-		wound_anchor.global_position = wound_world
-
-		var spark := WOUND_SPARK_SCENE.instantiate() as CPUParticles3D
-		wound_anchor.add_child(spark)
-		spark.amount = max(spark.amount, 42)
-
-		var smoke := DAMAGE_SMOKE_SCENE.instantiate() as CPUParticles3D
-		wound_anchor.add_child(smoke)
-		smoke.position.y += 0.04
+				wound_anchor.global_position = sep_pos
+			var spark := WOUND_SPARK_SCENE.instantiate()
+			wound_anchor.add_child(spark)
+			var smoke := DAMAGE_SMOKE_SCENE.instantiate()
+			wound_anchor.add_child(smoke)
 
 	# Apply outward impulse + random tumble.
 	var away: Vector3

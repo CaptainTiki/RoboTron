@@ -119,9 +119,16 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= GRAVITY * delta
 
-	# Jump
-	if Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
+	# Jump (floor) or wall jump (touching wall mid-air)
+	if Input.is_action_just_pressed("jump"):
+		if is_on_floor():
+			velocity.y = JUMP_VELOCITY
+		elif is_on_wall_only():
+			var wall_normal: Vector3 = get_wall_normal()
+			velocity.y = JUMP_VELOCITY * 0.85
+			velocity.x += wall_normal.x * JUMP_VELOCITY * 0.9
+			velocity.z += wall_normal.z * JUMP_VELOCITY * 0.9
+			camera_rig.kick(-0.35, 0.0, -wall_normal.x * 0.4)
 
 	# Horizontal movement
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
@@ -185,15 +192,19 @@ func _spawn_projectile(damage: float, spread: float, col: Color) -> void:
 		-1.0
 	)
 	var dir: Vector3 = (camera.global_transform.basis * spread_vec).normalized()
+	var spawn_point := camera.global_position
+	var weapon = _get_current_weapon()
+	if weapon and weapon.has_node("MuzzlePoint"):
+		spawn_point = weapon.muzzle_point.global_position
 
 	var proj: Projectile = PROJECTILE_SCENE.instantiate()
 	proj.damage = damage
 	proj.color = col
 	proj.collision_mask = 13  # world(1) + enemies(4) + robot parts(8)
-	proj.speed = 70.0
+	proj.speed = 110.0
 	proj.direction = dir
 	get_parent().add_child(proj)
-	proj.global_position = camera.global_position
+	proj.global_position = spawn_point
 
 func _try_glory_kill() -> void:
 	for enemy in get_tree().get_nodes_in_group("enemies"):

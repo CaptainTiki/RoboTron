@@ -3,6 +3,12 @@ class_name EnemyShooter
 
 @export var min_range: float = 7.0
 
+func _ready() -> void:
+	super._ready()
+	flies         = true   # drone: has rotors, should hover
+	fly_height    = 3.5
+	attack_windup = 0.2    # short pause before shot (projectile is the main telegraph)
+
 const PROJECTILE_SCENE = preload("res://world/projectiles/projectile.tscn")
 
 func _behavior(delta: float) -> void:

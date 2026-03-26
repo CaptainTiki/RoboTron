@@ -1,14 +1,14 @@
 [gd_scene format=3 uid="uid://cfuyephxiikit"]
 
 [ext_resource type="Script" uid="uid://c5qdw5fwhluut" path="res://world/arenas/arena.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://ilif8e1ne7om" path="res://world/components/robo_spawner.tscn" id="2_g2b7s"]
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
 background_color = Color(0.08, 0.08, 0.12, 1)
-background_energy_multiplier = 1.66
+background_energy_multiplier = 2.0
 ambient_light_source = 2
 ambient_light_color = Color(0.15, 0.15, 0.25, 1)
-ambient_light_energy = 0.6
 
 [sub_resource type="BoxShape3D" id="BoxShape_Floor"]
 size = Vector3(100, 1, 50)
@@ -93,12 +93,12 @@ script = ExtResource("1")
 
 [node name="Sun" type="DirectionalLight3D" parent="." unique_id=255480770]
 transform = Transform3D(0.86602527, -0.3535535, 0.35355362, 0, 0.7071069, 0.70710665, -0.50000024, -0.6123722, 0.61237246, 0, 0, 0)
-light_energy = 1.2
+light_energy = 1.55
 shadow_enabled = true
 
 [node name="FillLight" type="DirectionalLight3D" parent="." unique_id=176267476]
 transform = Transform3D(-0.8660255, 0.17101008, -0.4698461, 0, 0.93969256, 0.34202027, 0.49999982, 0.29619828, -0.8137977, 0, 0, 0)
-light_energy = 0.3
+light_energy = 0.65
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=335064540]
 environment = SubResource("Environment_1")
@@ -397,3 +397,23 @@ shape = SubResource("BoxShape_PD")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Geometry/Pillar21" unique_id=1630592480]
 material_override = SubResource("Mat_Pillar")
 mesh = SubResource("BoxMesh_PD")
+
+[node name="Components" type="Node3D" parent="." unique_id=11039011]
+
+[node name="RoboSpawner" parent="Components" unique_id=1826799586 instance=ExtResource("2_g2b7s")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -49.9791, 0, 12.357916)
+
+[node name="RoboSpawner2" parent="Components" unique_id=58173147 instance=ExtResource("2_g2b7s")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -49.9791, 0, -15.642084)
+
+[node name="RoboSpawner3" parent="Components" unique_id=339834626 instance=ExtResource("2_g2b7s")]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, -39.9791, 0, -24.942085)
+
+[node name="RoboSpawner4" parent="Components" unique_id=750554873 instance=ExtResource("2_g2b7s")]
+transform = Transform3D(1, 0, -1.7484555e-07, 0, 1, 0, 1.7484555e-07, 0, 1, -39.9791, 0, 24.857914)
+
+[node name="RoboSpawner5" parent="Components" unique_id=1204219494 instance=ExtResource("2_g2b7s")]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, -17.9791, 0, -24.942085)
+
+[node name="RoboSpawner6" parent="Components" unique_id=419036650 instance=ExtResource("2_g2b7s")]
+transform = Transform3D(1, 0, -1.7484555e-07, 0, 1, 0, 1.7484555e-07, 0, 1, 2.0209007, 0, 24.857914)

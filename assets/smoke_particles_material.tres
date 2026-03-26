@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://b15ukca15qc6p"]
+
+[resource]
+transparency = 1
+albedo_color = Color(0.3647059, 0.3647059, 0.3647059, 0.45490196)
+billboard_mode = 2

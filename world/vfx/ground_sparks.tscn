@@ -1,22 +1,25 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://bj6fck24u30n1"]
 
-[ext_resource type="Script" path="res://world/vfx/ground_sparks.gd" id="1"]
+[ext_resource type="Script" uid="uid://d05n72dpt4nlt" path="res://world/vfx/ground_sparks.gd" id="1"]
+[ext_resource type="Material" uid="uid://cteaqqko1r6k6" path="res://assets/spark_particle_material.tres" id="2_1ja14"]
+[ext_resource type="Material" uid="uid://b15ukca15qc6p" path="res://assets/smoke_particles_material.tres" id="3_1bq6t"]
 
 [sub_resource type="QuadMesh" id="QuadMesh_Sparks"]
+material = ExtResource("2_1ja14")
 size = Vector2(0.07, 0.07)
 
 [sub_resource type="QuadMesh" id="QuadMesh_Smoke"]
+material = ExtResource("3_1bq6t")
 size = Vector2(0.3, 0.3)
 
-[node name="GroundSparks" type="Node3D"]
+[node name="GroundSparks" type="Node3D" unique_id=116628033]
 script = ExtResource("1")
 
-[node name="Sparks" type="CPUParticles3D" parent="."]
+[node name="Sparks" type="CPUParticles3D" parent="." unique_id=1316771848]
 amount = 12
 lifetime = 0.45
-one_shot = false
-explosiveness = 0.0
 randomness = 0.6
+mesh = SubResource("QuadMesh_Sparks")
 emission_shape = 1
 emission_sphere_radius = 0.08
 direction = Vector3(0, 1, 0)
@@ -25,22 +28,18 @@ initial_velocity_min = 0.6
 initial_velocity_max = 2.2
 angular_velocity_min = -200.0
 angular_velocity_max = 200.0
-gravity = Vector3(0, -9.8, 0)
-color = Color(1.0, 0.65, 0.08, 1.0)
-mesh = SubResource("QuadMesh_Sparks")
+color = Color(1, 0.65, 0.08, 1)
 
-[node name="Smoke" type="CPUParticles3D" parent="."]
-amount = 6
+[node name="Smoke" type="CPUParticles3D" parent="." unique_id=534662682]
+amount = 18
 lifetime = 1.4
-one_shot = false
-explosiveness = 0.0
 randomness = 0.8
+mesh = SubResource("QuadMesh_Smoke")
 emission_shape = 1
 emission_sphere_radius = 0.06
 direction = Vector3(0, 1, 0)
 spread = 18.0
+gravity = Vector3(0, -0.1, 0)
 initial_velocity_min = 0.2
 initial_velocity_max = 0.7
-gravity = Vector3(0, -0.1, 0)
 color = Color(0.1, 0.1, 0.1, 0.35)
-mesh = SubResource("QuadMesh_Smoke")

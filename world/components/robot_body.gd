@@ -5,8 +5,6 @@ class_name RobotBody
 ## with no further propagation — this is always the root of the chain.
 ## Child RobotParts point their parent_part export here.
 
-const DAMAGE_SMOKE_SCENE = preload("res://world/vfx/damage_smoke.tscn")
-
 @export var stagger_hp_ratio: float = 0.25       # stagger when HP falls below this fraction
 @export var stagger_part_threshold: int = 3       # OR when this many parts have been lost
 
@@ -33,7 +31,7 @@ func take_damage(amount: float, hit_position: Vector3 = Vector3.ZERO) -> void:
 	_hp -= amount
 	var enemy := get_parent() as Enemy
 	if enemy:
-		enemy._apply_hit_twitch()
+		enemy.react_to_hit(0.8, 0.03)
 	_try_internal_eject(hit_position)
 	_check_smoke_thresholds()
 	_check_stagger()

@@ -12,7 +12,7 @@ const WEAPON_DATA: Dictionary = {
 	"pistol": {
 		"name": "Pistol",
 		"damage": 35.0,
-		"fire_rate": 0.5,
+		"fire_rate": 0.18,
 		"mag_size": 12,
 		"reload_time": 1.2,
 		"spread": 0.0,
@@ -88,6 +88,8 @@ func get_wave_composition() -> Array:
 		{"type": "shooter", "count": int(3 * scale)},
 		{"type": "rusher",  "count": int(2 * scale)},
 		{"type": "heavy",   "count": max(0, wave - 1)},
+		# Scout drone: appears wave 3+. Max 2 at once — rare, high-impact.
+		{"type": "scout",   "count": clamp(wave - 2, 0, 2)},
 	]
 
 func reset_for_new_game() -> void:

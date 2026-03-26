@@ -1,6 +1,10 @@
 extends Enemy
 class_name EnemyRusher
 
+func _ready() -> void:
+	super._ready()
+	attack_windup = 0.3  # faster melee — still visible but shorter than Grunt
+
 # Rusher: sprints at player once in charge range, melee on contact.
 const CHARGE_RANGE: float = 20.0
 var charging: bool = false
